@@ -227,7 +227,7 @@
         </div>
     </div>
 
-    <!-- Admin Portal Hidden Modal -->
+    <!-- Admin Portal Modal -->
     <div id="adminPortalModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 hidden">
         <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-gold/40 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-4 mb-4">
@@ -242,7 +242,7 @@
             <div id="adminAuthScreen" class="py-12 text-center max-w-sm mx-auto">
                 <i class="fas fa-lock text-4xl text-gold mb-4"></i>
                 <h4 class="font-heading text-lg font-bold mb-2">Owner Authentication</h4>
-                <input type="password" id="adminPassInput" placeholder="Enter Admin Key" class="w-full border px-4 py-2 rounded-lg mb-4 text-center">
+                <input type="password" id="adminPassInput" placeholder="Enter Admin Key (emay123)" class="w-full border px-4 py-2 rounded-lg mb-4 text-center">
                 <button onclick="verifyAdminKey()" class="w-full gold-btn py-2 rounded-lg font-bold">Login to Admin</button>
             </div>
 
@@ -314,7 +314,6 @@
 
                 <!-- Orders & Sales Tab -->
                 <div id="adminTabOrders" class="hidden space-y-6">
-                    <!-- Metrics Cards -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-amber-50 border border-gold/30 p-4 rounded-xl">
                             <p class="text-xs text-gray-500">Total Sales</p>
@@ -363,12 +362,11 @@
 
     <!-- Application Script -->
     <script>
-        // Sample Products Array (Fallback Mode)
         let defaultProducts = [
-            { id: 1, title: "Crunchify Spicy Nimco Pouch", category: "crunchify", cost: 120, price: 250, image: "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=500", description: "Freshly packed savoury crispy snack pouch (14x20cm)." },
-            { id: 2, title: "Wireless Bluetooth Earbuds", category: "gadgets", cost: 1400, price: 2499, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500", description: "Crystal clear sound with extended battery backup." },
-            { id: 3, title: "Aroma Steam Train Humidifier", category: "home", cost: 1800, price: 3200, image: "https://images.unsplash.com/photo-1546554137-f86b9593a222?w=500", description: "Ambient light humidifier for home & office relaxation." },
-            { id: 4, title: "Luxury Minimalist Gold Watch", category: "accessories", cost: 2000, price: 3999, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500", description: "Elegant gold finish water-resistant analog watch." }
+            { id: "1", title: "Crunchify Spicy Nimco Pouch", category: "crunchify", cost: 120, price: 250, image: "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=500", description: "Freshly packed savoury crispy snack pouch (14x20cm)." },
+            { id: "2", title: "Wireless Bluetooth Earbuds", category: "gadgets", cost: 1400, price: 2499, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500", description: "Crystal clear sound with extended battery backup." },
+            { id: "3", title: "Aroma Steam Train Humidifier", category: "home", cost: 1800, price: 3200, image: "https://images.unsplash.com/photo-1546554137-f86b9593a222?w=500", description: "Ambient light humidifier for home & office relaxation." },
+            { id: "4", title: "Luxury Minimalist Gold Watch", category: "accessories", cost: 2000, price: 3999, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500", description: "Elegant gold finish water-resistant analog watch." }
         ];
 
         let products = [...defaultProducts];
@@ -376,14 +374,12 @@
         let ordersHistory = [];
         let db = null;
 
-        // Initialize App
         document.addEventListener("DOMContentLoaded", () => {
             initFirebase();
             renderProducts(products);
             setupSecretAdminShortcut();
         });
 
-        // Firebase Initialization
         function initFirebase() {
             const savedConfig = localStorage.getItem("firebase_config");
             if (savedConfig) {
@@ -403,8 +399,11 @@
                 const data = snapshot.val();
                 if(data) {
                     products = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-                    renderProducts(products);
+                } else {
+                    products = [...defaultProducts];
                 }
+                renderProducts(products);
+                renderAdminProductsTable();
             });
         }
 
@@ -419,7 +418,6 @@
             });
         }
 
-        // Render Public Products Grid
         function renderProducts(items) {
             const grid = document.getElementById("productsGrid");
             grid.innerHTML = items.map(p => `
@@ -444,7 +442,6 @@
             `).join("");
         }
 
-        // Category Filtering
         function filterCategory(cat) {
             document.querySelectorAll(".cat-pill").forEach(el => {
                 el.classList.remove("bg-espresso", "text-white");
@@ -457,7 +454,6 @@
             else renderProducts(products.filter(p => p.category === cat));
         }
 
-        // Cart Drawer Handlers
         function toggleCartDrawer() {
             document.getElementById("cartDrawer").classList.toggle("hidden");
         }
@@ -494,7 +490,6 @@
             `).join("");
         }
 
-        // Checkout & WhatsApp Direct Integration
         function openCheckoutModal() {
             if(cart.length === 0) return alert("Please add items to cart first.");
             toggleCartDrawer();
@@ -528,7 +523,6 @@
 
             if(db) db.ref("orders").push(orderObj);
 
-            // WhatsApp Message Formatting
             let msg = `*NEW ORDER - PRODUCTIFY & CRUNCHIFY BY EMAY*\n\n`;
             msg += `*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${address}, ${city}\n\n`;
             msg += `*Ordered Items:*\n`;
@@ -543,16 +537,12 @@
             closeCheckoutModal();
         }
 
-        // Secret Admin Portal Shortcut (Shift + A)
         function setupSecretAdminShortcut() {
             document.addEventListener('keydown', (e) => {
                 if (e.shiftKey && (e.key === 'A' || e.key === 'a')) {
                     document.getElementById("adminPortalModal").classList.remove("hidden");
                 }
             });
-            if (window.location.hash === '#admin') {
-                document.getElementById("adminPortalModal").classList.remove("hidden");
-            }
         }
 
         function closeAdminModal() {
@@ -560,77 +550,116 @@
         }
 
         function verifyAdminKey() {
-            if(document.getElementById("adminPassInput").value === 'emay123') {
+            const pass = document.getElementById("adminPassInput").value;
+            if (pass === "emay123") {
                 document.getElementById("adminAuthScreen").classList.add("hidden");
                 document.getElementById("adminMainContent").classList.remove("hidden");
-                renderAdminProducts();
+                renderAdminProductsTable();
                 renderOrdersTable();
-            } else alert("Invalid Passcode!");
+            } else {
+                alert("Incorrect Admin Key!");
+            }
         }
 
         function switchAdminTab(tab) {
-            ['Products', 'Orders', 'Firebase'].forEach(t => {
-                document.getElementById(`adminTab${t}`).classList.add("hidden");
-            });
-            document.getElementById(`adminTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove("hidden");
+            document.getElementById("adminTabProducts").classList.add("hidden");
+            document.getElementById("adminTabOrders").classList.add("hidden");
+            document.getElementById("adminTabFirebase").classList.add("hidden");
+            document.getElementById("tabBtnProducts").className = "px-4 py-2 text-sm font-bold border-b-2 border-transparent text-gray-500";
+            document.getElementById("tabBtnOrders").className = "px-4 py-2 text-sm font-bold border-b-2 border-transparent text-gray-500";
+            document.getElementById("tabBtnFirebase").className = "px-4 py-2 text-sm font-bold border-b-2 border-transparent text-gray-500";
+
+            if (tab === 'products') {
+                document.getElementById("adminTabProducts").classList.remove("hidden");
+                document.getElementById("tabBtnProducts").className = "px-4 py-2 text-sm font-bold border-b-2 border-gold text-darkGold";
+                renderAdminProductsTable();
+            } else if (tab === 'orders') {
+                document.getElementById("adminTabOrders").classList.remove("hidden");
+                document.getElementById("tabBtnOrders").className = "px-4 py-2 text-sm font-bold border-b-2 border-gold text-darkGold";
+                renderOrdersTable();
+            } else if (tab === 'firebase') {
+                document.getElementById("adminTabFirebase").classList.remove("hidden");
+                document.getElementById("tabBtnFirebase").className = "px-4 py-2 text-sm font-bold border-b-2 border-gold text-darkGold";
+            }
+        }
+
+        function renderAdminProductsTable() {
+            const tbody = document.getElementById("adminProductsTable");
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td class="p-2 font-bold">${p.title}</td>
+                    <td class="p-2 uppercase text-[10px]">${p.category}</td>
+                    <td class="p-2">Rs. ${p.cost}</td>
+                    <td class="p-2">Rs. ${p.price}</td>
+                    <td class="p-2 text-emerald-700 font-bold">Rs. ${p.price - p.cost}</td>
+                    <td class="p-2">
+                        <button onclick="deleteProduct('${p.id}')" class="bg-red-500 text-white px-2.5 py-1 rounded hover:bg-red-600"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join("");
         }
 
         function saveProduct(e) {
             e.preventDefault();
-            const prod = {
-                title: document.getElementById("prodTitle").value,
-                category: document.getElementById("prodCat").value,
-                cost: Number(document.getElementById("prodCost").value),
-                price: Number(document.getElementById("prodPrice").value),
-                image: document.getElementById("prodImage").value,
-                description: document.getElementById("prodDesc").value
-            };
+            const title = document.getElementById("prodTitle").value;
+            const category = document.getElementById("prodCat").value;
+            const cost = Number(document.getElementById("prodCost").value);
+            const price = Number(document.getElementById("prodPrice").value);
+            const image = document.getElementById("prodImage").value;
+            const description = document.getElementById("prodDesc").value;
 
-            if(db) db.ref("products").push(prod);
-            else products.push({ id: Date.now(), ...prod });
+            const newProd = { title, category, cost, price, image, description };
 
-            renderProducts(products);
-            renderAdminProducts();
-            e.target.reset();
-        }
-
-        function renderAdminProducts() {
-            document.getElementById("adminProductsTable").innerHTML = products.map(p => `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-2 font-bold">${p.title}</td>
-                    <td class="p-2 uppercase">${p.category}</td>
-                    <td class="p-2">Rs. ${p.cost || 0}</td>
-                    <td class="p-2">Rs. ${p.price}</td>
-                    <td class="p-2 text-emerald-600 font-bold">Rs. ${p.price - (p.cost||0)}</td>
-                    <td class="p-2 text-red-500 cursor-pointer" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></td>
-                </tr>
-            `).join("");
+            if (db) {
+                db.ref("products").push(newProd).then(() => {
+                    alert("Product saved successfully to Firebase!");
+                    document.getElementById("prodTitle").value = "";
+                    document.getElementById("prodCost").value = "";
+                    document.getElementById("prodPrice").value = "";
+                    document.getElementById("prodImage").value = "";
+                    document.getElementById("prodDesc").value = "";
+                });
+            } else {
+                newProd.id = Date.now().toString();
+                products.push(newProd);
+                renderProducts(products);
+                renderAdminProductsTable();
+                alert("Product added locally!");
+            }
         }
 
         function deleteProduct(id) {
-            if(db) db.ref(`products/${id}`).remove();
-            else products = products.filter(p => p.id != id);
-            renderProducts(products);
-            renderAdminProducts();
+            if (confirm("Are you sure you want to delete this product?")) {
+                if (db) {
+                    db.ref("products/" + id).remove().then(() => {
+                        alert("Product deleted successfully!");
+                    });
+                } else {
+                    products = products.filter(p => p.id != id);
+                    renderProducts(products);
+                    renderAdminProductsTable();
+                }
+            }
         }
 
         function renderOrdersTable() {
-            const totalSales = ordersHistory.reduce((acc, o) => acc + (o.total || 0), 0);
-            const totalProfit = ordersHistory.reduce((acc, o) => acc + (o.profit || 0), 0);
+            const tbody = document.getElementById("adminOrdersTable");
+            tbody.innerHTML = ordersHistory.length === 0 ? `<tr><td colspan="5" class="p-4 text-center text-gray-400">No orders yet.</td></tr>` :
+            ordersHistory.map(o => `
+                <tr>
+                    <td class="p-2">${o.date}</td>
+                    <td class="p-2 font-bold">${o.customer}<br><span class="text-[10px] text-gray-500">${o.phone}</span></td>
+                    <td class="p-2 text-gray-600">${o.items}</td>
+                    <td class="p-2 font-bold">Rs. ${o.total}</td>
+                    <td class="p-2 text-emerald-700 font-bold">Rs. ${o.profit || 0}</td>
+                </tr>
+            `).join("");
 
+            let totalSales = ordersHistory.reduce((acc, o) => acc + o.total, 0);
+            let totalProfit = ordersHistory.reduce((acc, o) => acc + (o.profit || 0), 0);
             document.getElementById("metricTotalSales").innerText = `Rs. ${totalSales}`;
             document.getElementById("metricTotalProfit").innerText = `Rs. ${totalProfit}`;
             document.getElementById("metricTotalOrders").innerText = ordersHistory.length;
-
-            document.getElementById("adminOrdersTable").innerHTML = ordersHistory.map(o => `
-                <tr>
-                    <td class="p-2">${o.date}</td>
-                    <td class="p-2 font-bold">${o.customer} (${o.phone})</td>
-                    <td class="p-2">${o.items}</td>
-                    <td class="p-2 font-bold">Rs. ${o.total}</td>
-                    <td class="p-2 text-emerald-600 font-bold">Rs. ${o.profit}</td>
-                </tr>
-            `).join("");
         }
 
         function saveFirebaseConfig() {
@@ -638,9 +667,11 @@
             try {
                 JSON.parse(val);
                 localStorage.setItem("firebase_config", val);
-                alert("Firebase Connected Successfully! Reloading page...");
+                alert("Firebase config saved successfully! Reloading page...");
                 location.reload();
-            } catch(e) { alert("Invalid JSON Config!"); }
+            } catch(e) {
+                alert("Invalid JSON format. Please check your config.");
+            }
         }
     </script>
 </body>
