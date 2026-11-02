@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productify & Crunchify by emay</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#C5A059',
+                        darkGold: '#9A7B3E',
+                        cream: '#FDFBF7',
+                        marbleBg: '#F8F5F0',
+                        espresso: '#2C221E',
+                        charcoal: '#1A1817'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F8F5F0;
+            color: #2C221E;
+        }
+        .font-heading {
+            font-family: 'Marcellus', serif;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #C5A059 0%, #A37F38 100%);
+            color: #FFFFFF;
+        }
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #A37F38 0%, #836224 100%);
+        }
+    </style>
+</head>
+<body class="bg-marbleBg min-h-screen flex flex-col justify-between">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-espresso text-cream text-xs py-2 px-4 text-center tracking-widest uppercase flex justify-between items-center">
+        <span class="mx-auto">Shipping happiness to your doorsteps ✨</span>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="bg-cream border-b border-gold/20 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="filterCategory('all')">
+                <div class="w-12 h-12 rounded-full gold-gradient p-0.5 shadow-md">
+                    <div class="w-full h-full bg-cream rounded-full flex items-center justify-center font-heading text-lg font-bold text-darkGold">
+                        Pe
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-heading text-xl md:text-2xl font-bold tracking-wide text-espresso">Productify & Crunchify</h1>
+                    <p class="text-xs text-darkGold tracking-widest uppercase">by emay</p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-4">
+                <!-- Search Input -->
+                <div class="relative hidden md:block">
+                    <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Search products..." 
+                        class="bg-white border border-gold/30 rounded-full py-1.5 pl-4 pr-9 text-sm focus:outline-none focus:border-gold w-48 lg:w-64">
+                    <i class="fas fa-search absolute right-3 top-2.5 text-gray-400 text-xs"></i>
+                </div>
+
+                <!-- Cart Button -->
+                <button onclick="toggleCartDrawer()" class="relative p-2.5 text-espresso hover:text-darkGold transition-colors">
+                    <i class="fas fa-shopping-bag text-xl"></i>
+                    <span id="cartCountBadge" class="absolute top-1 right-1 bg-darkGold text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        <!-- Hero Banner -->
+        <div class="rounded-2xl bg-gradient-to-r from-espresso via-charcoal to-espresso text-cream p-8 md:p-12 mb-10 shadow-xl relative overflow-hidden border border-gold/30">
+            <div class="relative z-10 max-w-xl">
+                <span class="text-gold text-xs font-bold tracking-widest uppercase block mb-2">Premium Shopping Destination</span>
+                <h2 class="font-heading text-3xl md:text-5xl font-bold mb-4 leading-tight">Elevate Your Everyday Style & Taste</h2>
+                <p class="text-gray-300 text-sm md:text-base mb-6">Discover curated luxury accessories, tech gadgets, lifestyle items & handcrafted savoury crunchify snacks.</p>
+                <a href="#productsSection" class="inline-block gold-btn px-6 py-3 rounded-full text-sm font-semibold tracking-wide shadow-lg hover:shadow-xl transition-all">
+                    Explore Collection
+                </a>
+            </div>
+        </div>
+
+        <!-- Categories Filter Section -->
+        <div id="productsSection" class="mb-8">
+            <h3 class="font-heading text-2xl font-bold text-espresso mb-4">Categories</h3>
+            <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none" id="categoryPills">
+                <button onclick="filterCategory('all')" class="cat-pill active px-5 py-2 rounded-full text-sm font-medium bg-espresso text-white shadow-sm transition-all whitespace-nowrap">All Items</button>
+                <button onclick="filterCategory('crunchify')" class="cat-pill px-5 py-2 rounded-full text-sm font-medium bg-white text-espresso border border-gold/30 hover:border-gold transition-all whitespace-nowrap">Crunchify Snacks 🍿</button>
+                <button onclick="filterCategory('gadgets')" class="cat-pill px-5 py-2 rounded-full text-sm font-medium bg-white text-espresso border border-gold/30 hover:border-gold transition-all whitespace-nowrap">Gadgets 🎧</button>
+                <button onclick="filterCategory('accessories')" class="cat-pill px-5 py-2 rounded-full text-sm font-medium bg-white text-espresso border border-gold/30 hover:border-gold transition-all whitespace-nowrap">Accessories 💍</button>
+                <button onclick="filterCategory('home')" class="cat-pill px-5 py-2 rounded-full text-sm font-medium bg-white text-espresso border border-gold/30 hover:border-gold transition-all whitespace-nowrap">Home & Lifestyle 🏠</button>
+                <button onclick="filterCategory('beauty')" class="cat-pill px-5 py-2 rounded-full text-sm font-medium bg-white text-espresso border border-gold/30 hover:border-gold transition-all whitespace-nowrap">Beauty & Care ✨</button>
+            </div>
+        </div>
+
+        <!-- Products Grid Container -->
+        <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Dynamic Products Inserted Here -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-espresso text-cream pt-12 pb-8 border-t border-gold/20 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div>
+                <h4 class="font-heading text-xl font-bold text-gold mb-3">Productify & Crunchify by emay</h4>
+                <p class="text-xs text-gray-400 leading-relaxed mb-4">Your premium destination for high quality lifestyle products and crunchy savoury snacks. Delivering nationwide across Pakistan.</p>
+                <p class="text-xs text-gold">✨ Shipping happiness to your doorsteps</p>
+            </div>
+            <div>
+                <h5 class="font-heading text-sm font-bold text-cream mb-3 uppercase tracking-wider">Payment Details</h5>
+                <p class="text-xs text-gray-300">EasyPaisa: <span class="text-gold font-bold">03155887964</span></p>
+                <p class="text-xs text-gray-300">Account Title: <span class="text-cream font-bold">Azra Begum</span></p>
+                <p class="text-[11px] text-gray-400 mt-2">Advance payment required to confirm orders.</p>
+            </div>
+            <div>
+                <h5 class="font-heading text-sm font-bold text-cream mb-3 uppercase tracking-wider">Customer Support</h5>
+                <a href="https://wa.me/923115324142" target="_blank" class="inline-flex items-center space-x-2 text-xs bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-full transition-colors">
+                    <i class="fab fa-whatsapp text-sm"></i>
+                    <span>Order Helpline: 03115324142</span>
+                </a>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
+            &copy; 2026 Productify & Crunchify by emay. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Cart Drawer Modal -->
+    <div id="cartDrawer" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onclick="toggleCartDrawer()"></div>
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-cream shadow-2xl flex flex-col justify-between">
+                <div class="p-6 border-b border-gold/20 flex justify-between items-center">
+                    <h2 class="font-heading text-xl font-bold text-espresso">Your Shopping Bag</h2>
+                    <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-espresso"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div id="cartItemsList" class="p-6 overflow-y-auto flex-grow divide-y divide-gray-200">
+                    <!-- Cart items rendered here -->
+                </div>
+                <div class="p-6 border-t border-gold/20 bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-medium text-gray-600">Subtotal</span>
+                        <span id="cartSubtotal" class="font-bold text-lg text-espresso">Rs. 0</span>
+                    </div>
+                    <button onclick="openCheckoutModal()" class="w-full gold-btn py-3 rounded-xl font-semibold shadow-md text-center block">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 hidden">
+        <div class="bg-cream rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gold/30 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="font-heading text-xl font-bold text-espresso">Complete Your Order</h3>
+                <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            
+            <!-- EasyPaisa Box -->
+            <div class="bg-amber-50 border border-gold/40 rounded-xl p-4 mb-4 text-xs text-espresso">
+                <div class="flex items-center space-x-2 font-bold text-darkGold mb-1">
+                    <i class="fas fa-wallet text-sm"></i>
+                    <span>EasyPaisa Advance Payment Instructions:</span>
+                </div>
+                <p>1. Send Total Order Amount to EasyPaisa: <b class="text-espresso">03155887964</b></p>
+                <p>2. Account Title: <b class="text-espresso">Azra Begum</b></p>
+                <p>3. After payment, click "Confirm & Order via WhatsApp" and attach your payment screenshot on WhatsApp.</p>
+            </div>
+
+            <form id="checkoutForm" onsubmit="handleCheckout(event)" class="space-y-3 text-sm">
+                <div>
+                    <label class="block font-medium text-espresso text-xs mb-1">Full Name *</label>
+                    <input type="text" id="custName" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold">
+                </div>
+                <div>
+                    <label class="block font-medium text-espresso text-xs mb-1">Phone Number (WhatsApp) *</label>
+                    <input type="tel" id="custPhone" required placeholder="03XXXXXXXXX" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold">
+                </div>
+                <div>
+                    <label class="block font-medium text-espresso text-xs mb-1">City *</label>
+                    <input type="text" id="custCity" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold">
+                </div>
+                <div>
+                    <label class="block font-medium text-espresso text-xs mb-1">Shipping Address *</label>
+                    <textarea id="custAddress" required rows="2" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-gold"></textarea>
+                </div>
+                
+                <div class="pt-3 border-t">
+                    <div class="flex justify-between font-bold text-espresso mb-4">
+                        <span>Total Payable:</span>
+                        <span id="checkoutTotal">Rs. 0</span>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center space-x-2">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                        <span>Confirm & Order via WhatsApp</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Portal Hidden Modal -->
+    <div id="adminPortalModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 hidden">
+        <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-gold/40 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <div>
+                    <h3 class="font-heading text-xl font-bold text-espresso">Productify Store Management</h3>
+                    <p class="text-xs text-gray-500">Sales, Analytics & Inventory Dashboard</p>
+                </div>
+                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+
+            <!-- Password Screen -->
+            <div id="adminAuthScreen" class="py-12 text-center max-w-sm mx-auto">
+                <i class="fas fa-lock text-4xl text-gold mb-4"></i>
+                <h4 class="font-heading text-lg font-bold mb-2">Owner Authentication</h4>
+                <input type="password" id="adminPassInput" placeholder="Enter Admin Key" class="w-full border px-4 py-2 rounded-lg mb-4 text-center">
+                <button onclick="verifyAdminKey()" class="w-full gold-btn py-2 rounded-lg font-bold">Login to Admin</button>
+            </div>
+
+            <!-- Admin Content (Tabs) -->
+            <div id="adminMainContent" class="hidden">
+                <div class="flex space-x-2 border-b mb-6">
+                    <button onclick="switchAdminTab('products')" id="tabBtnProducts" class="px-4 py-2 text-sm font-bold border-b-2 border-gold text-darkGold">Products</button>
+                    <button onclick="switchAdminTab('orders')" id="tabBtnOrders" class="px-4 py-2 text-sm font-bold border-b-2 border-transparent text-gray-500">Sales & Orders</button>
+                    <button onclick="switchAdminTab('firebase')" id="tabBtnFirebase" class="px-4 py-2 text-sm font-bold border-b-2 border-transparent text-gray-500">⚙️ Firebase Setup</button>
+                </div>
+
+                <!-- Products Tab -->
+                <div id="adminTabProducts" class="space-y-6">
+                    <form onsubmit="saveProduct(event)" class="bg-marbleBg p-4 rounded-xl border border-gold/20 space-y-4">
+                        <h4 class="font-bold text-sm text-espresso">Add / Edit Product</h4>
+                        <input type="hidden" id="prodId">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-semibold">Title</label>
+                                <input type="text" id="prodTitle" required class="w-full border p-2 rounded text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold">Category</label>
+                                <select id="prodCat" class="w-full border p-2 rounded text-sm">
+                                    <option value="crunchify">Crunchify Snacks</option>
+                                    <option value="gadgets">Gadgets</option>
+                                    <option value="accessories">Accessories</option>
+                                    <option value="home">Home & Lifestyle</option>
+                                    <option value="beauty">Beauty & Care</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold">Cost Price (Supplier/Cost PKR)</label>
+                                <input type="number" id="prodCost" required class="w-full border p-2 rounded text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold">Selling Price (Customer PKR)</label>
+                                <input type="number" id="prodPrice" required class="w-full border p-2 rounded text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold">Image URL (ImgBB/Direct Link)</label>
+                            <input type="url" id="prodImage" required class="w-full border p-2 rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold">Description</label>
+                            <textarea id="prodDesc" rows="2" class="w-full border p-2 rounded text-sm"></textarea>
+                        </div>
+                        <button type="submit" class="gold-btn px-6 py-2 rounded-lg text-sm font-bold">Save Product</button>
+                    </form>
+
+                    <!-- Inventory Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-espresso text-cream">
+                                <tr>
+                                    <th class="p-2">Item</th>
+                                    <th class="p-2">Category</th>
+                                    <th class="p-2">Cost</th>
+                                    <th class="p-2">Price</th>
+                                    <th class="p-2">Profit</th>
+                                    <th class="p-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProductsTable" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders & Sales Tab -->
+                <div id="adminTabOrders" class="hidden space-y-6">
+                    <!-- Metrics Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-amber-50 border border-gold/30 p-4 rounded-xl">
+                            <p class="text-xs text-gray-500">Total Sales</p>
+                            <h5 id="metricTotalSales" class="text-lg font-bold text-espresso">Rs. 0</h5>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                            <p class="text-xs text-gray-500">Net Profit</p>
+                            <h5 id="metricTotalProfit" class="text-lg font-bold text-emerald-700">Rs. 0</h5>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                            <p class="text-xs text-gray-500">Total Orders</p>
+                            <h5 id="metricTotalOrders" class="text-lg font-bold text-blue-700">0</h5>
+                        </div>
+                        <div class="bg-purple-50 border border-purple-200 p-4 rounded-xl">
+                            <p class="text-xs text-gray-500">Top Category</p>
+                            <h5 id="metricTopCat" class="text-lg font-bold text-purple-700">-</h5>
+                        </div>
+                    </div>
+
+                    <h4 class="font-bold text-sm text-espresso">Order History</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-espresso text-cream">
+                                <tr>
+                                    <th class="p-2">Date</th>
+                                    <th class="p-2">Customer</th>
+                                    <th class="p-2">Items</th>
+                                    <th class="p-2">Total</th>
+                                    <th class="p-2">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminOrdersTable" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Firebase Config Tab -->
+                <div id="adminTabFirebase" class="hidden space-y-4">
+                    <p class="text-xs text-gray-600">Paste your Firebase Config JSON object below to sync live database:</p>
+                    <textarea id="firebaseConfigInput" rows="8" placeholder='{ "apiKey": "...", "databaseURL": "..." }' class="w-full font-mono text-xs p-3 border rounded-lg bg-gray-50"></textarea>
+                    <button onclick="saveFirebaseConfig()" class="gold-btn px-6 py-2 rounded-lg text-sm font-bold">Save & Connect Firebase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Sample Products Array (Fallback Mode)
+        let defaultProducts = [
+            { id: 1, title: "Crunchify Spicy Nimco Pouch", category: "crunchify", cost: 120, price: 250, image: "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=500", description: "Freshly packed savoury crispy snack pouch (14x20cm)." },
+            { id: 2, title: "Wireless Bluetooth Earbuds", category: "gadgets", cost: 1400, price: 2499, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500", description: "Crystal clear sound with extended battery backup." },
+            { id: 3, title: "Aroma Steam Train Humidifier", category: "home", cost: 1800, price: 3200, image: "https://images.unsplash.com/photo-1546554137-f86b9593a222?w=500", description: "Ambient light humidifier for home & office relaxation." },
+            { id: 4, title: "Luxury Minimalist Gold Watch", category: "accessories", cost: 2000, price: 3999, image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500", description: "Elegant gold finish water-resistant analog watch." }
+        ];
+
+        let products = [...defaultProducts];
+        let cart = [];
+        let ordersHistory = [];
+        let db = null;
+
+        // Initialize App
+        document.addEventListener("DOMContentLoaded", () => {
+            initFirebase();
+            renderProducts(products);
+            setupSecretAdminShortcut();
+        });
+
+        // Firebase Initialization
+        function initFirebase() {
+            const savedConfig = localStorage.getItem("firebase_config");
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    if (!firebase.apps.length) firebase.initializeApp(config);
+                    db = firebase.database();
+                    fetchFirebaseProducts();
+                    fetchFirebaseOrders();
+                } catch(e) { console.log("Firebase fallback mode active."); }
+            }
+        }
+
+        function fetchFirebaseProducts() {
+            if(!db) return;
+            db.ref("products").on("value", snapshot => {
+                const data = snapshot.val();
+                if(data) {
+                    products = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                    renderProducts(products);
+                }
+            });
+        }
+
+        function fetchFirebaseOrders() {
+            if(!db) return;
+            db.ref("orders").on("value", snapshot => {
+                const data = snapshot.val();
+                if(data) {
+                    ordersHistory = Object.values(data);
+                    renderOrdersTable();
+                }
+            });
+        }
+
+        // Render Public Products Grid
+        function renderProducts(items) {
+            const grid = document.getElementById("productsGrid");
+            grid.innerHTML = items.map(p => `
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gold/20 flex flex-col justify-between">
+                    <div>
+                        <div class="h-48 w-full overflow-hidden bg-gray-100">
+                            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                        </div>
+                        <div class="p-5">
+                            <span class="text-[10px] font-bold tracking-widest text-darkGold uppercase bg-amber-50 px-2 py-1 rounded-md border border-gold/30">${p.category}</span>
+                            <h4 class="font-heading font-bold text-lg text-espresso mt-2 line-clamp-1">${p.title}</h4>
+                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">${p.description}</p>
+                        </div>
+                    </div>
+                    <div class="p-5 pt-0 flex items-center justify-between mt-4">
+                        <span class="font-bold text-espresso text-base">Rs. ${p.price}</span>
+                        <button onclick="addToCart('${p.id}')" class="gold-btn px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                            + Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        // Category Filtering
+        function filterCategory(cat) {
+            document.querySelectorAll(".cat-pill").forEach(el => {
+                el.classList.remove("bg-espresso", "text-white");
+                el.classList.add("bg-white", "text-espresso");
+            });
+            event.target.classList.remove("bg-white", "text-espresso");
+            event.target.classList.add("bg-espresso", "text-white");
+
+            if (cat === 'all') renderProducts(products);
+            else renderProducts(products.filter(p => p.category === cat));
+        }
+
+        // Cart Drawer Handlers
+        function toggleCartDrawer() {
+            document.getElementById("cartDrawer").classList.toggle("hidden");
+        }
+
+        function addToCart(id) {
+            const prod = products.find(p => p.id == id);
+            const item = cart.find(c => c.id == id);
+            if(item) item.qty++;
+            else cart.push({ ...prod, qty: 1 });
+            updateCartUI();
+            toggleCartDrawer();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById("cartItemsList");
+            const badge = document.getElementById("cartCountBadge");
+            const subtotalEl = document.getElementById("cartSubtotal");
+
+            let totalQty = cart.reduce((acc, i) => acc + i.qty, 0);
+            let totalPrice = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+
+            badge.innerText = totalQty;
+            subtotalEl.innerText = `Rs. ${totalPrice}`;
+
+            list.innerHTML = cart.length === 0 ? `<p class="text-center text-gray-400 text-xs py-8">Your bag is empty.</p>` :
+            cart.map(i => `
+                <div class="py-3 flex items-center justify-between">
+                    <div>
+                        <h5 class="text-xs font-bold text-espresso">${i.title}</h5>
+                        <p class="text-[11px] text-gray-500">Rs. ${i.price} x ${i.qty}</p>
+                    </div>
+                    <span class="font-bold text-xs">Rs. ${i.price * i.qty}</span>
+                </div>
+            `).join("");
+        }
+
+        // Checkout & WhatsApp Direct Integration
+        function openCheckoutModal() {
+            if(cart.length === 0) return alert("Please add items to cart first.");
+            toggleCartDrawer();
+            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            document.getElementById("checkoutTotal").innerText = `Rs. ${total}`;
+            document.getElementById("checkoutModal").classList.remove("hidden");
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById("checkoutModal").classList.add("hidden");
+        }
+
+        function handleCheckout(e) {
+            e.preventDefault();
+            const name = document.getElementById("custName").value;
+            const phone = document.getElementById("custPhone").value;
+            const city = document.getElementById("custCity").value;
+            const address = document.getElementById("custAddress").value;
+            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const profit = cart.reduce((acc, i) => acc + ((i.price - (i.cost||0)) * i.qty), 0);
+
+            const orderObj = {
+                date: new Date().toLocaleDateString(),
+                customer: name,
+                phone: phone,
+                address: `${address}, ${city}`,
+                items: cart.map(i => `${i.title} (x${i.qty})`).join(", "),
+                total: total,
+                profit: profit
+            };
+
+            if(db) db.ref("orders").push(orderObj);
+
+            // WhatsApp Message Formatting
+            let msg = `*NEW ORDER - PRODUCTIFY & CRUNCHIFY BY EMAY*\n\n`;
+            msg += `*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${address}, ${city}\n\n`;
+            msg += `*Ordered Items:*\n`;
+            cart.forEach(i => { msg += `- ${i.title} x${i.qty} (Rs. ${i.price * i.qty})\n`; });
+            msg += `\n*Total Amount:* Rs. ${total}\n`;
+            msg += `*Payment Method:* EasyPaisa (03155887964 - Azra Begum)\n\n`;
+            msg += `_Note: I am attaching my payment screenshot below._`;
+
+            window.open(`https://wa.me/923115324142?text=${encodeURIComponent(msg)}`, '_blank');
+            cart = [];
+            updateCartUI();
+            closeCheckoutModal();
+        }
+
+        // Secret Admin Portal Shortcut (Shift + A)
+        function setupSecretAdminShortcut() {
+            document.addEventListener('keydown', (e) => {
+                if (e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+                    document.getElementById("adminPortalModal").classList.remove("hidden");
+                }
+            });
+            if (window.location.hash === '#admin') {
+                document.getElementById("adminPortalModal").classList.remove("hidden");
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById("adminPortalModal").classList.add("hidden");
+        }
+
+        function verifyAdminKey() {
+            if(document.getElementById("adminPassInput").value === 'emay123') {
+                document.getElementById("adminAuthScreen").classList.add("hidden");
+                document.getElementById("adminMainContent").classList.remove("hidden");
+                renderAdminProducts();
+                renderOrdersTable();
+            } else alert("Invalid Passcode!");
+        }
+
+        function switchAdminTab(tab) {
+            ['Products', 'Orders', 'Firebase'].forEach(t => {
+                document.getElementById(`adminTab${t}`).classList.add("hidden");
+            });
+            document.getElementById(`adminTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.remove("hidden");
+        }
+
+        function saveProduct(e) {
+            e.preventDefault();
+            const prod = {
+                title: document.getElementById("prodTitle").value,
+                category: document.getElementById("prodCat").value,
+                cost: Number(document.getElementById("prodCost").value),
+                price: Number(document.getElementById("prodPrice").value),
+                image: document.getElementById("prodImage").value,
+                description: document.getElementById("prodDesc").value
+            };
+
+            if(db) db.ref("products").push(prod);
+            else products.push({ id: Date.now(), ...prod });
+
+            renderProducts(products);
+            renderAdminProducts();
+            e.target.reset();
+        }
+
+        function renderAdminProducts() {
+            document.getElementById("adminProductsTable").innerHTML = products.map(p => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-2 font-bold">${p.title}</td>
+                    <td class="p-2 uppercase">${p.category}</td>
+                    <td class="p-2">Rs. ${p.cost || 0}</td>
+                    <td class="p-2">Rs. ${p.price}</td>
+                    <td class="p-2 text-emerald-600 font-bold">Rs. ${p.price - (p.cost||0)}</td>
+                    <td class="p-2 text-red-500 cursor-pointer" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i></td>
+                </tr>
+            `).join("");
+        }
+
+        function deleteProduct(id) {
+            if(db) db.ref(`products/${id}`).remove();
+            else products = products.filter(p => p.id != id);
+            renderProducts(products);
+            renderAdminProducts();
+        }
+
+        function renderOrdersTable() {
+            const totalSales = ordersHistory.reduce((acc, o) => acc + (o.total || 0), 0);
+            const totalProfit = ordersHistory.reduce((acc, o) => acc + (o.profit || 0), 0);
+
+            document.getElementById("metricTotalSales").innerText = `Rs. ${totalSales}`;
+            document.getElementById("metricTotalProfit").innerText = `Rs. ${totalProfit}`;
+            document.getElementById("metricTotalOrders").innerText = ordersHistory.length;
+
+            document.getElementById("adminOrdersTable").innerHTML = ordersHistory.map(o => `
+                <tr>
+                    <td class="p-2">${o.date}</td>
+                    <td class="p-2 font-bold">${o.customer} (${o.phone})</td>
+                    <td class="p-2">${o.items}</td>
+                    <td class="p-2 font-bold">Rs. ${o.total}</td>
+                    <td class="p-2 text-emerald-600 font-bold">Rs. ${o.profit}</td>
+                </tr>
+            `).join("");
+        }
+
+        function saveFirebaseConfig() {
+            const val = document.getElementById("firebaseConfigInput").value;
+            try {
+                JSON.parse(val);
+                localStorage.setItem("firebase_config", val);
+                alert("Firebase Connected Successfully! Reloading page...");
+                location.reload();
+            } catch(e) { alert("Invalid JSON Config!"); }
+        }
+    </script>
+</body>
+</html>
